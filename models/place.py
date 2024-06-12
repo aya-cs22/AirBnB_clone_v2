@@ -1,39 +1,32 @@
 #!/usr/bin/python3
 """ Place Module for HBNB project """
 from models.base_model import BaseModel, Base
-from sqlalchemy import Column, Integer, String, ForeignKey, Float, Table
+from sqlalchemy import String, Column, ForeignKey, Integer, Float, Table
 from sqlalchemy.orm import relationship
-from models.amenity import Amenity
-from models.review import Review
-import os
+from os import getenv
 
-place_amenity = Table(
-    "place_amenity",
-    Base.metadata,
-    Column(
-        "place_id",
-        String(60),
-        ForeignKey("places.id"),
-        primary_key=True,
-        nullable=False,
-    ),
-    Column(
-        "amenity_id",
-        String(60),
-        ForeignKey("amenities.id"),
-        primary_key=True,
-        nullable=False,
-    ),
-)
+
+if getenv("HBNB_TYPE_STORAGE") == "db":
+    place_amenity = Table(
+            "place_amenity",
+            Base.metadata,
+            Column("place_id", String(60), ForeignKey("places.id"),
+                   primary_key=True, nullable=False),
+            Column("amenity_id", String(60), ForeignKey("amenities.id"),
+                   primary_key=True, nullable=False),
+            mysql_charset="latin1"
+            )
 
 
 class Place(BaseModel, Base):
-    """class Place"""
-
+    """ A place to stay """
+    import models
     __tablename__ = "places"
-    if os.getenv("HBNB_TYPE_STORAGE") == "db":
-        city_id = Column(String(60), ForeignKey("cities.id"), nullable=False)
-        user_id = Column(String(60), ForeignKey("users.id"), nullable=False)
+    __table_args__ = ({'mysql_default_charset': 'latin1'})
+
+    if getenv("HBNB_TYPE_STORAGE") == "db":
+        city_id = Column(String(60), ForeignKey('cities.id'), nullable=False)
+        user_id = Column(String(60), ForeignKey('users.id'), nullable=False)
         name = Column(String(128), nullable=False)
         description = Column(String(1024), nullable=True)
         number_rooms = Column(Integer, nullable=False, default=0)
@@ -42,12 +35,14 @@ class Place(BaseModel, Base):
         price_by_night = Column(Integer, nullable=False, default=0)
         latitude = Column(Float, nullable=True)
         longitude = Column(Float, nullable=True)
-        amenities = relationship("Amenity", secondary=place_amenity,
+        reviews = relationship("Review", cascade="all, delete",
+                               backref="place")
+        amenities = relationship("Amenity",
+                                 secondary=place_amenity,
                                  viewonly=False,
                                  back_populates="place_amenities")
-
     else:
-        # city_id = ""
+        city_id = ""
         user_id = ""
         name = ""
         description = ""
@@ -61,29 +56,17 @@ class Place(BaseModel, Base):
 
         @property
         def amenities(self):
-            """ docuemnt"""
-            from models import storage
-            amenities = []
-            stored = storage.all(Amenity)
-            for amenity in stored.values():
-                amenities.append(amenity)
+            """Getter for amenities"""
+            all_amenities = models.storage.all(Amenity)
+            place_amenities = []
+            for am_id in amenity_ids:
+                key = "Amenity." + am_id
+                place_amenities.append(all_amenities[key])
 
-            return amenities
-
-        @property
-        def reviews(self):
-            """Get reviews"""
-            from models import storage
-            reviews_List = []
-            stored = storage.all(Review)
-            for review in stored.values():
-                if review.place_id in self.id:
-                    reviews_List.append(review)
-            return reviews_List
+            return place_amenities
 
         @amenities.setter
         def amenities(self, obj):
-            """Setter to set amenities"""
-            cls = 'Amenity'
-            if isinstance(obj, cls):
-                self.amenity_ids.append(obj.id)
+            """Setter for amenities."""
+            if type(obj) is Amenity:
+                amenity_ids.append(obj.id)
