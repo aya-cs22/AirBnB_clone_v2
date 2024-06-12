@@ -10,16 +10,14 @@ class FileStorage:
 
     def all(self, cls=None):
         """Returns a dictionary of models currently in storage"""
-        if cls == None:
-            return FileStorage.__objects
-        else:
-            new_dict = {}
-            name = cls.__name__
-            for key, value in FileStorage.__objects.items():
-               if name in key:
-                   new_dict[key] = value
-            return new_dict
+        if cls:
+            objs = {}
+            for k, v in FileStorage.__objects.items():
+                if isinstance(v, cls):
+                    objs[k] = v
 
+            return objs
+        return FileStorage.__objects
 
     def new(self, obj):
         """Adds new object to storage dictionary"""
@@ -54,16 +52,20 @@ class FileStorage:
             with open(FileStorage.__file_path, 'r') as f:
                 temp = json.load(f)
                 for key, val in temp.items():
-                        self.all()[key] = classes[val['__class__']](**val)
+                    self.all()[key] = classes[val['__class__']](**val)
         except FileNotFoundError:
             pass
+
     def delete(self, obj=None):
-        """delets object if inside the __objects otherwise do nothing"""
-        if obj:
-            name = obj.__class__.__name__
-            obj_name = name + '.' + obj.id
-            if obj_name in FileStorage.__objects.keys():
-                del FileStorage.__objects[obj_name]
+        """Deletes obj from __objects if it's inside"""
+        if obj is not None:
+            key = obj.__class__.__name__ + '.' + obj.id
+            if key in self.__objects:
+                del self.__objects[key]
+
+    def close(self):
+        """ calls reload """
+        self.reload()
 # #!/usr/bin/python3
 # """This module defines a class to manage file storage for hbnb clone"""
 # import json
