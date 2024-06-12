@@ -1,12 +1,11 @@
 #!/usr/bin/python3
 """ State Module for HBNB project """
-from sqlalchemy import Column, String, ForeignKey
-from sqlalchemy.orm import relationship
 from os import getenv
-from models.base_model import BaseModel, Base
+from models.base_model import BaseModel
+from sqlalchemy.orm import relationship
+from sqlalchemy import Column, String, ForeignKey
 
-
-class State(BaseModel, Base):
+class State(BaseModel):
     """ State class """
     __tablename__ = 'states'
     name = Column(String(128), nullable=False)
@@ -17,31 +16,8 @@ class State(BaseModel, Base):
             """Cities getter"""
             from models.city import City
             from models import storage
-            _list = []
+            list = []
             for city in storage.all(City).values():
                 if city.state_id == self.id:
-                    _list.append(city)
-            return _list
-# #!/usr/bin/python3
-# """ State Module for HBNB project """
-# from os import getenv
-# from models.base_model import BaseModel
-# from sqlalchemy.orm import relationship
-# from sqlalchemy import Column, String, ForeignKey
-
-# class State(BaseModel):
-#     """ State class """
-#     __tablename__ = 'states'
-#     name = Column(String(128), nullable=False)
-#     cities = relationship('City', cascade='all, delete', backref='state')
-#     if getenv('HBNB_TYPE_STORAGE') != 'db':
-#         @property
-#         def cities(self):
-#             """Cities getter"""
-#             from models.city import City
-#             from models import storage
-#             list = []
-#             for city in storage.all(City).values():
-#                 if city.state_id == self.id:
-#                     list.append(city)
-#             return list
+                    list.append(city)
+            return list
