@@ -18,8 +18,9 @@ class DBStorage:
     """interaacts with the MySQL database"""
     __engine = None
     __session = None
-    classes = [City, State, User, Place, Review, Amenity]
-
+    classes = {"Amenity": Amenity, "City": City,
+               "Place": Place, "Review": Review, "State": State, "User": User}
+    
     def __init__(self):
         """Instantiate a DBStorage"""
         HBNB_MYSQL_USER = getenv('HBNB_MYSQL_USER')
@@ -39,19 +40,14 @@ class DBStorage:
 
     def all(self, cls=None):
         """query on the current database session"""
-        objs = []
-        dct = {}
-        if cls is None:
-            for item in self.classes:
-                objs.extend(self.__session.query(item).all())
-        else:
-            if type(cls) is str:
-                cls = eval(cls)
-            objs = self.__session.query(cls).all()
-
-        for obj in objs:
-            dct[obj.__class__.__name__ + '.' + obj.id] = obj
-        return dct
+        new_dict = {}
+        for clss in self.classes:
+            if cls is None or cls is self.classes[clss] or cls is clss:
+                objs = self.__session.query(self.classes[clss]).all()
+                for obj in objs:
+                    key = obj.__class__.__name__ + '.' + obj.id
+                    new_dict[key] = obj
+        return (new_dict)
 
     def new(self, obj):
         """add the object to the current database session"""
@@ -76,6 +72,7 @@ class DBStorage:
     def close(self):
         """call remove() method on the private session attribute"""
         self.__session.close()
+
     # def all(self, cls=None):
     #     """Query on the current database session all objects depending on the class name."""
     #     objects_dict = {}

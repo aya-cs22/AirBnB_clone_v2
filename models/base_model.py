@@ -68,8 +68,8 @@ class BaseModel:
         """Convert instance into dict format"""
         dictionary = {}
         dictionary.update(self.__dict__.copy())
-        if '_sa_instance_state' in _dict:
-            del _dict['_sa_instance_state']
+        if '_sa_instance_state' in dictionary:
+            del dictionary['_sa_instance_state']
         dictionary.update({'__class__':
                           (str(type(self)).split('.')[-1]).split('\'')[0]})
         dictionary['created_at'] = self.created_at.isoformat()
