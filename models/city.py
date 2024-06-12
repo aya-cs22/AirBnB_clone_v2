@@ -1,32 +1,29 @@
-#!/usr/bin/python3
-""" City Module for HBNB project """
+#!/usr/bin/python
+""" holds class City"""
+import models
+from models.base_model import BaseModel, Base
+from os import getenv
+import sqlalchemy
 from sqlalchemy import Column, String, ForeignKey
-from models.base_model import BaseModel
-from sqlalchemy.ext.declarative import declarative_base
-
 from sqlalchemy.orm import relationship
-from models.base_model import Base
-import os
 
 
 class City(BaseModel, Base):
-    """ The city class, contains state ID and name """
-    __tablename__ = 'cities'
-    if os.getenv("HBNB_TYPE_STORAGE") == "db":
-        name = Column(String(128), nullable=False)
+    """Representation of city """
+    if models.storage_t == "db":
+        __tablename__ = 'cities'
         state_id = Column(String(60), ForeignKey('states.id'), nullable=False)
-        state = relationship('State', back_populates='cities')
-        places = relationship('Place', backref='cities',
-                              cascade='all, delete, delete-orphan')
+        name = Column(String(128), nullable=False)
+        places = relationship("Place",
+                              backref="cities",
+                              cascade="all, delete, delete-orphan")
     else:
-        name = ""
         state_id = ""
+        name = ""
 
-    if os.getenv("HBNB_TYPE_STORAGE") != "db":
-        @property
-        def cities(self):
-            """Returns an empty list for non-DB storage."""
-            return []
+    def __init__(self, *args, **kwargs):
+        """initializes city"""
+        super().__init__(*args, **kwargs)
 # #!/usr/bin/python3
 # """ City Module for HBNB project """
 # from models.base_model import BaseModel
